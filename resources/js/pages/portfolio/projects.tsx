@@ -1,0 +1,260 @@
+import { Head, router, useForm } from '@inertiajs/react';
+import { Pencil, Plus, Trash2, X } from 'lucide-react';
+import { useState } from 'react';
+
+import type { FormEvent } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
+
+import type { BreadcrumbItem } from '@/types';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Portfolio', href: '/portfolio' },
+    { title: 'Projects', href: '/portfolio/projects' },
+];
+
+type Project = {
+    id: number;
+    title: string;
+    description: string | null;
+    long_description: string | null;
+    tags: string[] | null;
+    status: 'completed' | 'in-progress' | 'planned';
+    github: string | null;
+    demo: string | null;
+    sort_order: number;
+};
+
+const emptyProject = {
+    title: '',
+    description: '',
+    long_description: '',
+    tags: [] as string[],
+    status: 'planned' as 'completed' | 'in-progress' | 'planned',
+    github: '',
+    demo: '',
+    sort_order: 0,
+};
+
+function ProjectForm({
+    initial,
+    action,
+    method,
+    onDone,
+}: {
+    initial: typeof emptyProject;
+    action: string;
+    method: 'post' | 'put';
+    onDone: () => void;
+}) {
+    const form = useForm({ ...initial });
+    const [tagInput, setTagInput] = useState('');
+
+    function addTag() {
+        const tag = tagInput.trim();
+        if (tag && !form.data.tags.includes(tag)) {
+            form.setData('tags', [...form.data.tags, tag]);
+        }
+        setTagInput('');
+    }
+
+    function removeTag(tag: string) {
+        form.setData('tags', form.data.tags.filter((t) => t !== tag));
+    }
+
+    function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        if (method === 'post') {
+            form.post(action, { onSuccess: onDone });
+        } else {
+            form.put(action, { onSuccess: onDone });
+        }
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input id="title" value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} />
+                {form.errors.title && <p className="text-destructive text-sm">{form.errors.title}</p>}
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="description">Short description</Label>
+                <Textarea id="description" rows={2} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="long_description">Detailed description</Label>
+                <Textarea id="long_description" rows={4} value={form.data.long_description} onChange={(e) => form.setData('long_description', e.target.value)} />
+            </div>
+            <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={form.data.status} onValueChange={(v) => form.setData('status', v as typeof form.data.status)}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="in-progress">In Progress</SelectItem>
+                        <SelectItem value="planned">Planned</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2">
+                <Label>Tags</Label>
+                <div className="flex gap-2">
+                    <Input
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                        placeholder="Add a tag and press Enter"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={addTag}>Add</Button>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                    {form.data.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="gap-1">
+                            {tag}
+                            <button type="button" onClick={() => removeTag(tag)} className="ml-1 hover:text-destructive">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="github">GitHub URL</Label>
+                    <Input id="github" value={form.data.github} onChange={(e) => form.setData('github', e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="demo">Demo URL</Label>
+                    <Input id="demo" value={form.data.demo} onChange={(e) => form.setData('demo', e.target.value)} />
+                </div>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="sort_order">Sort order</Label>
+                <Input id="sort_order" type="number" value={form.data.sort_order} onChange={(e) => form.setData('sort_order', Number(e.target.value))} />
+            </div>
+            <Button type="submit" disabled={form.processing}>
+                {form.processing ? 'Saving…' : 'Save'}
+            </Button>
+        </form>
+    );
+}
+
+export default function ProjectsPage({ projects }: { projects: Project[] }) {
+    const [open, setOpen] = useState(false);
+    const [editId, setEditId] = useState<number | null>(null);
+
+    const editProject = editId !== null ? projects.find((p) => p.id === editId) : null;
+
+    function startEdit(project: Project) {
+        setEditId(project.id);
+        setOpen(true);
+    }
+
+    function startCreate() {
+        setEditId(null);
+        setOpen(true);
+    }
+
+    function handleDelete(id: number) {
+        if (confirm('Delete this project?')) {
+            router.delete(`/portfolio/projects/${id}`);
+        }
+    }
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Projects" />
+            <div className="flex flex-col gap-6 p-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold">Projects</h1>
+                        <p className="text-muted-foreground text-sm">{projects.length} project(s)</p>
+                    </div>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button onClick={startCreate}>
+                                <Plus className="h-4 w-4 mr-2" /> Add Project
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>{editProject ? 'Edit Project' : 'New Project'}</DialogTitle>
+                            </DialogHeader>
+                            <ProjectForm
+                                key={editId ?? 'new'}
+                                initial={
+                                    editProject
+                                        ? {
+                                              title: editProject.title,
+                                              description: editProject.description ?? '',
+                                              long_description: editProject.long_description ?? '',
+                                              tags: editProject.tags ?? [],
+                                              status: editProject.status,
+                                              github: editProject.github ?? '',
+                                              demo: editProject.demo ?? '',
+                                              sort_order: editProject.sort_order,
+                                          }
+                                        : emptyProject
+                                }
+                                action={editProject ? `/portfolio/projects/${editProject.id}` : '/portfolio/projects'}
+                                method={editProject ? 'put' : 'post'}
+                                onDone={() => setOpen(false)}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                {projects.length === 0 && (
+                    <Card>
+                        <CardContent className="py-12 text-center text-muted-foreground">
+                            No projects yet. Click "Add Project" to create one.
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {projects.map((project) => (
+                        <Card key={project.id}>
+                            <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                                <div>
+                                    <CardTitle className="text-base">{project.title}</CardTitle>
+                                    <Badge variant="outline" className="mt-1">{project.status}</Badge>
+                                </div>
+                                <div className="flex gap-1">
+                                    <Button variant="ghost" size="icon" onClick={() => startEdit(project)}>
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(project.id)}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                                {project.tags && project.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-3">
+                                        {project.tags.map((tag) => (
+                                            <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </AppLayout>
+    );
+}
