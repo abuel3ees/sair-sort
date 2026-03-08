@@ -1,25 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { usePortfolio } from "@/lib/portfolio-context"
-
-/**
- * Compute a font-size in vw that makes the text fit roughly one line.
- * Longer names get smaller; short names stay massive.
- */
-function useAutoFitFont(text: string, minRem = 3, maxVw = 22) {
-  return useMemo(() => {
-    const charWidth = maxVw * 0.55
-    const totalWidth = text.length * charWidth
-    const targetVw = 90
-    if (totalWidth > targetVw) {
-      const scaled = Math.max(minRem, (targetVw / text.length) / 0.55)
-      return `${scaled}vw`
-    }
-    return `clamp(${minRem}rem, ${maxVw}vw, 20rem)`
-  }, [text, minRem, maxVw])
-}
 
 export function HeroSection() {
   const { data } = usePortfolio()
@@ -73,9 +56,6 @@ export function HeroSection() {
   const firstName = nameParts[0] || ""
   const lastName = nameParts.slice(1).join(" ") || ""
 
-  const firstNameSize = useAutoFitFont(firstName)
-  const lastNameSize = useAutoFitFont(lastName)
-
   return (
     <section className="relative min-h-screen flex flex-col bg-background overflow-hidden grain">
       {/* Scroll progress */}
@@ -120,7 +100,7 @@ export function HeroSection() {
         </div>
       </header>
 
-      {/* Main name — massive typography, auto-fit */}
+      {/* Main name — massive typography, admin-controlled size */}
       <div
         className="flex-1 flex items-center px-6 md:px-10 relative z-10"
         style={{
@@ -134,21 +114,25 @@ export function HeroSection() {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          <h1 className="font-serif font-black tracking-[-0.04em] leading-[0.82] select-none">
+          <h1
+            className="font-black tracking-[-0.04em] leading-[0.82] select-none"
+            style={{
+              fontFamily: 'var(--font-heading, var(--font-serif))',
+              fontSize: `${data.settings.nameFontSize}vw`,
+            }}
+          >
             <span
               className={`block transition-all duration-1000 ease-out ${
                 isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-24"
               }`}
-              style={{ fontSize: firstNameSize }}
             >
               {firstName}
             </span>
             {lastName && (
               <span
-                className={`block md:ml-[12%] transition-all duration-1000 delay-150 ease-out ${
+                className={`block md:ml-[8%] transition-all duration-1000 delay-150 ease-out ${
                   isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-24"
                 }`}
-                style={{ fontSize: lastNameSize }}
               >
                 {lastName}
               </span>

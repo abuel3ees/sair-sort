@@ -1,19 +1,21 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\PortfolioController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-        'portfolio'   => PortfolioController::portfolioData(),
+        'portfolio' => PortfolioController::portfolioData(),
     ]);
 })->name('home');
 
+// ── Public CV download (tracked) ────────────────────
+Route::get('/cv/download', [PortfolioController::class, 'downloadCv'])->name('cv.download');
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->name('dashboard');
 
     // ── Portfolio Admin ─────────────────────────────────
     Route::prefix('portfolio')->name('portfolio.')->group(function () {
@@ -21,6 +23,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/profile',    [PortfolioController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile',    [PortfolioController::class, 'updateProfile'])->name('profile.update');
+
+        Route::post('/cv/upload',  [PortfolioController::class, 'uploadCv'])->name('cv.upload');
+        Route::delete('/cv',       [PortfolioController::class, 'deleteCv'])->name('cv.delete');
+        Route::post('/import',     [PortfolioController::class, 'importJson'])->name('import');
 
         Route::get('/projects',   [PortfolioController::class, 'projectsIndex'])->name('projects.index');
         Route::post('/projects',  [PortfolioController::class, 'storeProject'])->name('projects.store');
@@ -39,6 +45,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/sections',  [PortfolioController::class, 'sectionsIndex'])->name('sections.index');
         Route::put('/sections',  [PortfolioController::class, 'updateSections'])->name('sections.update');
+
+        Route::get('/appearance',  [PortfolioController::class, 'appearanceIndex'])->name('appearance.index');
+        Route::put('/appearance',  [PortfolioController::class, 'updateAppearance'])->name('appearance.update');
+
+        Route::get('/preview-data', [PortfolioController::class, 'previewData'])->name('preview.data');
     });
 });
 

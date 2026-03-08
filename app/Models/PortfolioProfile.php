@@ -15,5 +15,6 @@ class PortfolioProfile extends Model
         'linkedin',
         'location',
         'status',
+        'cv_path',
     ];
 }

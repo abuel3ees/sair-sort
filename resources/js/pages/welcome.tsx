@@ -9,12 +9,12 @@ import { ExperienceSection } from "@/components/portfolio/experience-section"
 import { HeroSection } from "@/components/portfolio/hero-section"
 import { ProjectsSection } from "@/components/portfolio/projects-section"
 import { PortfolioProvider, usePortfolio } from "@/lib/portfolio-context"
-
 import type { PortfolioData, SectionId } from "@/lib/portfolio-context"
+import { ThemeProvider } from "@/lib/theme-provider"
+
 
 type Props = {
   portfolio?: Partial<PortfolioData>
-  canRegister?: boolean
 }
 
 const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
@@ -43,13 +43,23 @@ function PortfolioSections() {
   )
 }
 
-export default function PortfolioPage({ portfolio }: Props) {
+function PortfolioContent() {
+  const { data } = usePortfolio()
+
   return (
-    <PortfolioProvider initialData={portfolio}>
+    <ThemeProvider settings={data.settings}>
       <Head title="Portfolio" />
       <main className="bg-background">
         <PortfolioSections />
       </main>
+    </ThemeProvider>
+  )
+}
+
+export default function PortfolioPage({ portfolio }: Props) {
+  return (
+    <PortfolioProvider initialData={portfolio}>
+      <PortfolioContent />
     </PortfolioProvider>
   )
 }

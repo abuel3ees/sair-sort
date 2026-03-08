@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Briefcase, FolderGit2, GraduationCap, Layers, LayoutGrid, Settings2, User } from 'lucide-react';
+import { Briefcase, Eye, FolderGit2, GraduationCap, Layers, LayoutGrid, Palette, Settings2, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -55,18 +55,18 @@ const portfolioNavItems: NavItem[] = [
         href: '/portfolio/sections',
         icon: Settings2,
     },
+    {
+        title: 'Appearance',
+        href: '/portfolio/appearance',
+        icon: Palette,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        title: 'View Live Site',
+        href: '/',
+        icon: Eye,
     },
 ];
 

@@ -7,7 +7,9 @@ use App\Models\PortfolioExperience;
 use App\Models\PortfolioProfile;
 use App\Models\PortfolioProject;
 use App\Models\PortfolioSettings;
+use App\Models\VisitorLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PortfolioController extends Controller
@@ -35,6 +37,7 @@ class PortfolioController extends Controller
                 'linkedin' => $profile->linkedin ?? '',
                 'location' => $profile->location ?? '',
                 'status'   => $profile->status ?? 'Open to work',
+                'hasCv'    => (bool) $profile->cv_path,
             ] : null,
             'projects' => $projects->map(fn ($p) => [
                 'id'              => (string) $p->id,
@@ -67,6 +70,11 @@ class PortfolioController extends Controller
             'settings' => [
                 'sectionOrder'    => $settings->section_order ?? PortfolioSettings::$defaultSections,
                 'visibleSections' => $settings->visible_sections ?? PortfolioSettings::$defaultSections,
+                'fontHeading'     => $settings->font_heading ?? 'Inter',
+                'fontBody'        => $settings->font_body ?? 'Inter',
+                'colorScheme'     => $settings->color_scheme ?? 'brutalist',
+                'animationStyle'  => $settings->animation_style ?? 'reveal',
+                'nameFontSize'    => (float) ($settings->name_font_size ?? 14.0),
             ],
         ];
     }
@@ -301,5 +309,199 @@ class PortfolioController extends Controller
         }
 
         return back()->with('success', 'Sections updated.');
+    }
+
+    // ── CV Upload ───────────────────────────────────────
+
+    public function uploadCv(Request $request)
+    {
+        $request->validate([
+            'cv' => 'required|file|mimes:pdf|max:10240', // 10MB max
+        ]);
+
+        $profile = PortfolioProfile::first();
+        if (! $profile) {
+            return back()->withErrors(['cv' => 'Create a profile first.']);
+        }
+
+        // Delete old CV if exists
+        if ($profile->cv_path) {
+            Storage::disk('public')->delete($profile->cv_path);
+        }
+
+        $path = $request->file('cv')->store('cv', 'public');
+        $profile->update(['cv_path' => $path]);
+
+        return back()->with('success', 'CV uploaded.');
+    }
+
+    public function deleteCv()
+    {
+        $profile = PortfolioProfile::first();
+        if ($profile && $profile->cv_path) {
+            Storage::disk('public')->delete($profile->cv_path);
+            $profile->update(['cv_path' => null]);
+        }
+
+        return back()->with('success', 'CV removed.');
+    }
+
+    // ── Public CV Download (tracked) ────────────────────
+
+    public function downloadCv(Request $request)
+    {
+        $profile = PortfolioProfile::first();
+
+        if (! $profile || ! $profile->cv_path || ! Storage::disk('public')->exists($profile->cv_path)) {
+            abort(404, 'CV not found.');
+        }
+
+        // Track the download
+        VisitorLog::create([
+            'ip'         => $request->ip(),
+            'path'       => 'cv/download',
+            'method'     => 'GET',
+            'user_agent' => $request->userAgent(),
+            'referer'    => $request->header('referer'),
+            'device'     => VisitorLog::detectDevice($request->userAgent()),
+            'event'      => 'cv_download',
+        ]);
+
+        $name = str_replace(' ', '_', $profile->name) . '_CV.pdf';
+
+        return Storage::disk('public')->download($profile->cv_path, $name);
+    }
+
+    // ── JSON Import ─────────────────────────────────────
+
+    public function importJson(Request $request)
+    {
+        $request->validate([
+            'json_file' => 'required|file|mimes:json,txt|max:2048',
+        ]);
+
+        $content = file_get_contents($request->file('json_file')->getRealPath());
+        $data = json_decode($content, true);
+
+        if (! $data) {
+            return back()->withErrors(['json_file' => 'Invalid JSON file.']);
+        }
+
+        // Import profile
+        if (isset($data['profile'])) {
+            $p = $data['profile'];
+            PortfolioProfile::updateOrCreate(['id' => 1], [
+                'name'     => $p['name'] ?? 'Unnamed',
+                'tagline'  => $p['tagline'] ?? null,
+                'bio'      => $p['bio'] ?? null,
+                'email'    => $p['email'] ?? null,
+                'github'   => $p['github'] ?? null,
+                'linkedin' => $p['linkedin'] ?? null,
+                'location' => $p['location'] ?? null,
+                'status'   => $p['status'] ?? 'Open to work',
+            ]);
+        }
+
+        // Import projects
+        if (isset($data['projects']) && is_array($data['projects'])) {
+            foreach ($data['projects'] as $i => $proj) {
+                PortfolioProject::updateOrCreate(
+                    ['title' => $proj['title'] ?? "Project $i"],
+                    [
+                        'description'      => $proj['description'] ?? null,
+                        'long_description' => $proj['long_description'] ?? $proj['longDescription'] ?? null,
+                        'tags'             => $proj['tags'] ?? [],
+                        'status'           => $proj['status'] ?? 'planned',
+                        'github'           => $proj['github'] ?? null,
+                        'demo'             => $proj['demo'] ?? null,
+                        'sort_order'       => $i,
+                    ],
+                );
+            }
+        }
+
+        // Import experience
+        if (isset($data['experience']) && is_array($data['experience'])) {
+            foreach ($data['experience'] as $i => $exp) {
+                PortfolioExperience::updateOrCreate(
+                    ['company' => $exp['company'] ?? "Company $i", 'role' => $exp['role'] ?? 'Role'],
+                    [
+                        'duration'     => $exp['duration'] ?? '',
+                        'description'  => $exp['description'] ?? null,
+                        'type'         => $exp['type'] ?? 'full-time',
+                        'technologies' => $exp['technologies'] ?? [],
+                        'sort_order'   => $i,
+                    ],
+                );
+            }
+        }
+
+        // Import education
+        if (isset($data['education']) && is_array($data['education'])) {
+            foreach ($data['education'] as $i => $edu) {
+                PortfolioEducation::updateOrCreate(
+                    ['institution' => $edu['institution'] ?? "Institution $i"],
+                    [
+                        'degree'     => $edu['degree'] ?? '',
+                        'field'      => $edu['field'] ?? '',
+                        'duration'   => $edu['duration'] ?? '',
+                        'gpa'        => $edu['gpa'] ?? null,
+                        'highlights' => $edu['highlights'] ?? [],
+                        'sort_order' => $i,
+                    ],
+                );
+            }
+        }
+
+        return back()->with('success', 'Portfolio data imported successfully.');
+    }
+
+    // ── Admin: Appearance (fonts, colors, animations) ───
+
+    public function appearanceIndex()
+    {
+        $settings = PortfolioSettings::current();
+        $profile = PortfolioProfile::first();
+
+        return Inertia::render('portfolio/appearance', [
+            'settings' => [
+                'font_heading'    => $settings->font_heading ?? 'Inter',
+                'font_body'       => $settings->font_body ?? 'Inter',
+                'color_scheme'    => $settings->color_scheme ?? 'brutalist',
+                'animation_style' => $settings->animation_style ?? 'reveal',
+                'name_font_size'  => (float) ($settings->name_font_size ?? 14.0),
+            ],
+            'profileName' => $profile->name ?? 'Your Name',
+        ]);
+    }
+
+    public function updateAppearance(Request $request)
+    {
+        $data = $request->validate([
+            'font_heading'    => 'required|string|max:100',
+            'font_body'       => 'required|string|max:100',
+            'color_scheme'    => 'required|string|max:50',
+            'animation_style' => 'required|string|max:50',
+            'name_font_size'  => 'required|numeric|min:3|max:25',
+        ]);
+
+        $settings = PortfolioSettings::first();
+        if ($settings) {
+            $settings->update($data);
+        } else {
+            PortfolioSettings::create(array_merge($data, [
+                'section_order' => PortfolioSettings::$defaultSections,
+                'visible_sections' => PortfolioSettings::$defaultSections,
+            ]));
+        }
+
+        return back()->with('success', 'Appearance updated.');
+    }
+
+    // ── Admin: Live Preview Data ────────────────────────
+
+    public function previewData()
+    {
+        return response()->json(self::portfolioData());
     }
 }

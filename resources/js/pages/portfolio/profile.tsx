@@ -1,4 +1,7 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
+import { FileText, Import, Trash2, Upload } from 'lucide-react';
+import { useRef } from 'react';
+
 import type { FormEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -26,9 +29,13 @@ type Profile = {
     linkedin: string | null;
     location: string | null;
     status: string | null;
+    cv_path: string | null;
 };
 
 export default function ProfileEdit({ profile }: { profile: Profile | null }) {
+    const cvInputRef = useRef<HTMLInputElement>(null);
+    const jsonInputRef = useRef<HTMLInputElement>(null);
+
     const form = useForm({
         name: profile?.name ?? '',
         tagline: profile?.tagline ?? '',
@@ -45,15 +52,50 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
         form.put('/portfolio/profile');
     }
 
+    function handleCvUpload(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('cv', file);
+        router.post('/portfolio/cv/upload', fd as never, { forceFormData: true });
+    }
+
+    function handleDeleteCv() {
+        if (confirm('Remove your CV?')) {
+            router.delete('/portfolio/cv');
+        }
+    }
+
+    function handleJsonImport(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('json_file', file);
+        router.post('/portfolio/import', fd as never, { forceFormData: true });
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Profile" />
             <div className="flex flex-col gap-6 p-6">
-                <div>
-                    <h1 className="text-2xl font-bold">Profile</h1>
-                    <p className="text-muted-foreground text-sm">
-                        Your public-facing profile information.
-                    </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold">Profile</h1>
+                        <p className="text-muted-foreground text-sm">
+                            Your public-facing profile information.
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            className="inline-flex items-center gap-2 border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                            onClick={() => jsonInputRef.current?.click()}
+                        >
+                            <Import className="h-4 w-4" />
+                            Import JSON
+                        </button>
+                        <input ref={jsonInputRef} type="file" accept=".json" className="hidden" onChange={handleJsonImport} />
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
@@ -149,6 +191,41 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     onChange={(e) => form.setData('linkedin', e.target.value)}
                                 />
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* ── CV Upload ─────────────────── */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>CV / Resume</CardTitle>
+                            <CardDescription>Upload a PDF to make it downloadable on your portfolio.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {profile?.cv_path ? (
+                                <div className="flex items-center gap-3 p-3 border bg-muted/50">
+                                    <FileText className="h-5 w-5 text-muted-foreground" />
+                                    <span className="text-sm flex-1 font-mono">CV uploaded</span>
+                                    <button
+                                        type="button"
+                                        className="inline-flex items-center gap-1 border px-2 py-1 text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                                        onClick={handleDeleteCv}
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                        Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No CV uploaded yet.</p>
+                            )}
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-2 border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                                onClick={() => cvInputRef.current?.click()}
+                            >
+                                <Upload className="h-4 w-4" />
+                                {profile?.cv_path ? 'Replace CV' : 'Upload CV'}
+                            </button>
+                            <input ref={cvInputRef} type="file" accept=".pdf" className="hidden" onChange={handleCvUpload} />
                         </CardContent>
                     </Card>
 

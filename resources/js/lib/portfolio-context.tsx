@@ -12,6 +12,7 @@ export type Profile = {
   linkedin: string
   location: string
   status: string
+  hasCv: boolean
 }
 
 export type Project = {
@@ -48,6 +49,11 @@ export type Education = {
 export type SectionSettings = {
   sectionOrder: string[]
   visibleSections: string[]
+  fontHeading: string
+  fontBody: string
+  colorScheme: string
+  animationStyle: string
+  nameFontSize: number
 }
 
 export const ALL_SECTIONS = ["hero", "projects", "experience", "education", "contact"] as const
@@ -76,6 +82,7 @@ const defaultData: PortfolioData = {
     linkedin: "yourusername",
     location: "San Francisco, CA",
     status: "Open to work",
+    hasCv: false,
   },
   projects: [],
   experience: [],
@@ -83,6 +90,11 @@ const defaultData: PortfolioData = {
   settings: {
     sectionOrder: [...ALL_SECTIONS],
     visibleSections: [...ALL_SECTIONS],
+    fontHeading: "Inter",
+    fontBody: "Inter",
+    colorScheme: "brutalist",
+    animationStyle: "reveal",
+    nameFontSize: 14,
   },
 }
 
@@ -99,6 +111,7 @@ export function PortfolioProvider({
     ...defaultData,
     ...initialData,
     profile: { ...defaultData.profile, ...(initialData?.profile ?? {}) },
+    settings: { ...defaultData.settings, ...(initialData?.settings ?? {}) },
   }
 
   return <PortfolioContext.Provider value={{ data }}>{children}</PortfolioContext.Provider>
