@@ -384,6 +384,9 @@ export function ThemeProvider({ settings, children }: ThemeProviderProps) {
             Object.entries(vars).forEach(([key, value]) => {
                 root.style.setProperty(key, value);
             });
+            // Capture originals so section-level swaps can reference them
+            root.style.setProperty('--foreground-orig', vars['--foreground']);
+            root.style.setProperty('--background-orig', vars['--background']);
         };
 
         applyVars();
@@ -395,6 +398,8 @@ export function ThemeProvider({ settings, children }: ThemeProviderProps) {
         return () => {
             observer.disconnect();
             ALL_COLOR_KEYS.forEach((key) => root.style.removeProperty(key));
+            root.style.removeProperty('--foreground-orig');
+            root.style.removeProperty('--background-orig');
         };
     }, [colorScheme]);
 

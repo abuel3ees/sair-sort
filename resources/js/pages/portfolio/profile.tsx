@@ -23,12 +23,18 @@ type Profile = {
     id?: number;
     name: string;
     tagline: string | null;
+    hero_subtitle: string | null;
     bio: string | null;
     email: string | null;
     github: string | null;
     linkedin: string | null;
+    twitter: string | null;
+    dribbble: string | null;
+    website: string | null;
     location: string | null;
     status: string | null;
+    contact_cta: string | null;
+    footer_text: string | null;
     cv_path: string | null;
 };
 
@@ -39,12 +45,18 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
     const form = useForm({
         name: profile?.name ?? '',
         tagline: profile?.tagline ?? '',
+        hero_subtitle: profile?.hero_subtitle ?? '',
         bio: profile?.bio ?? '',
         email: profile?.email ?? '',
         github: profile?.github ?? '',
         linkedin: profile?.linkedin ?? '',
+        twitter: profile?.twitter ?? '',
+        dribbble: profile?.dribbble ?? '',
+        website: profile?.website ?? '',
         location: profile?.location ?? '',
         status: profile?.status ?? 'Open to work',
+        contact_cta: profile?.contact_cta ?? '',
+        footer_text: profile?.footer_text ?? '',
     });
 
     function handleSubmit(e: FormEvent) {
@@ -123,6 +135,15 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                 />
                             </div>
                             <div className="space-y-2">
+                                <Label htmlFor="hero_subtitle">Hero Subtitle</Label>
+                                <Input
+                                    id="hero_subtitle"
+                                    value={form.data.hero_subtitle}
+                                    onChange={(e) => form.setData('hero_subtitle', e.target.value)}
+                                    placeholder="Optional subtitle shown below your name"
+                                />
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
                                 <Input
                                     id="status"
@@ -189,6 +210,61 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="linkedin"
                                     value={form.data.linkedin}
                                     onChange={(e) => form.setData('linkedin', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="twitter">X / Twitter username</Label>
+                                <Input
+                                    id="twitter"
+                                    value={form.data.twitter}
+                                    onChange={(e) => form.setData('twitter', e.target.value)}
+                                    placeholder="username (without @)"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="dribbble">Dribbble username</Label>
+                                <Input
+                                    id="dribbble"
+                                    value={form.data.dribbble}
+                                    onChange={(e) => form.setData('dribbble', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="website">Website URL</Label>
+                                <Input
+                                    id="website"
+                                    value={form.data.website}
+                                    onChange={(e) => form.setData('website', e.target.value)}
+                                    placeholder="https://example.com"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* ── Contact Customization ──────── */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Contact Section</CardTitle>
+                            <CardDescription>Customize the contact CTA and footer text.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="contact_cta">CTA Text</Label>
+                                <Input
+                                    id="contact_cta"
+                                    value={form.data.contact_cta}
+                                    onChange={(e) => form.setData('contact_cta', e.target.value)}
+                                    placeholder="Let's Talk"
+                                />
+                                <p className="text-xs text-muted-foreground">The big headline on the contact section. First word on line 1, rest on line 2.</p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="footer_text">Footer Text</Label>
+                                <Input
+                                    id="footer_text"
+                                    value={form.data.footer_text}
+                                    onChange={(e) => form.setData('footer_text', e.target.value)}
+                                    placeholder="Built with Sair"
                                 />
                             </div>
                         </CardContent>

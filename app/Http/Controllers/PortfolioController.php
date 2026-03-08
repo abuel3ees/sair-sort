@@ -29,15 +29,21 @@ class PortfolioController extends Controller
 
         return [
             'profile' => $profile ? [
-                'name'     => $profile->name,
-                'tagline'  => $profile->tagline ?? '',
-                'bio'      => $profile->bio ?? '',
-                'email'    => $profile->email ?? '',
-                'github'   => $profile->github ?? '',
-                'linkedin' => $profile->linkedin ?? '',
-                'location' => $profile->location ?? '',
-                'status'   => $profile->status ?? 'Open to work',
-                'hasCv'    => (bool) $profile->cv_path,
+                'name'         => $profile->name,
+                'tagline'      => $profile->tagline ?? '',
+                'heroSubtitle' => $profile->hero_subtitle ?? '',
+                'bio'          => $profile->bio ?? '',
+                'email'        => $profile->email ?? '',
+                'github'       => $profile->github ?? '',
+                'linkedin'     => $profile->linkedin ?? '',
+                'twitter'      => $profile->twitter ?? '',
+                'dribbble'     => $profile->dribbble ?? '',
+                'website'      => $profile->website ?? '',
+                'location'     => $profile->location ?? '',
+                'status'       => $profile->status ?? 'Open to work',
+                'contactCta'   => $profile->contact_cta ?? "Let's Talk",
+                'footerText'   => $profile->footer_text ?? 'Built with Sair',
+                'hasCv'        => (bool) $profile->cv_path,
             ] : null,
             'projects' => $projects->map(fn ($p) => [
                 'id'              => (string) $p->id,
@@ -68,13 +74,15 @@ class PortfolioController extends Controller
                 'highlights'  => $ed->highlights ?? [],
             ])->values()->all(),
             'settings' => [
-                'sectionOrder'    => $settings->section_order ?? PortfolioSettings::$defaultSections,
-                'visibleSections' => $settings->visible_sections ?? PortfolioSettings::$defaultSections,
-                'fontHeading'     => $settings->font_heading ?? 'Inter',
-                'fontBody'        => $settings->font_body ?? 'Inter',
-                'colorScheme'     => $settings->color_scheme ?? 'brutalist',
-                'animationStyle'  => $settings->animation_style ?? 'reveal',
-                'nameFontSize'    => (float) ($settings->name_font_size ?? 14.0),
+                'sectionOrder'       => $settings->section_order ?? PortfolioSettings::$defaultSections,
+                'visibleSections'    => $settings->visible_sections ?? PortfolioSettings::$defaultSections,
+                'fontHeading'        => $settings->font_heading ?? 'Inter',
+                'fontBody'           => $settings->font_body ?? 'Inter',
+                'colorScheme'        => $settings->color_scheme ?? 'brutalist',
+                'animationStyle'     => $settings->animation_style ?? 'reveal',
+                'nameFontSize'       => (float) ($settings->name_font_size ?? 14.0),
+                'sectionBackgrounds' => $settings->section_backgrounds ?? PortfolioSettings::$defaultBackgrounds,
+                'elementVisibility'  => $settings->element_visibility ?? PortfolioSettings::$defaultVisibility,
             ],
         ];
     }
@@ -102,14 +110,20 @@ class PortfolioController extends Controller
     public function updateProfile(Request $request)
     {
         $data = $request->validate([
-            'name'     => 'required|string|max:255',
-            'tagline'  => 'nullable|string|max:500',
-            'bio'      => 'nullable|string',
-            'email'    => 'nullable|email|max:255',
-            'github'   => 'nullable|string|max:255',
-            'linkedin' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'status'   => 'nullable|string|max:255',
+            'name'          => 'required|string|max:255',
+            'tagline'       => 'nullable|string|max:500',
+            'hero_subtitle' => 'nullable|string|max:500',
+            'bio'           => 'nullable|string',
+            'email'         => 'nullable|email|max:255',
+            'github'        => 'nullable|string|max:255',
+            'linkedin'      => 'nullable|string|max:255',
+            'twitter'       => 'nullable|string|max:255',
+            'dribbble'      => 'nullable|string|max:255',
+            'website'       => 'nullable|string|max:255',
+            'location'      => 'nullable|string|max:255',
+            'status'        => 'nullable|string|max:255',
+            'contact_cta'   => 'nullable|string|max:255',
+            'footer_text'   => 'nullable|string|max:500',
         ]);
 
         $profile = PortfolioProfile::first();
@@ -391,14 +405,20 @@ class PortfolioController extends Controller
         if (isset($data['profile'])) {
             $p = $data['profile'];
             PortfolioProfile::updateOrCreate(['id' => 1], [
-                'name'     => $p['name'] ?? 'Unnamed',
-                'tagline'  => $p['tagline'] ?? null,
-                'bio'      => $p['bio'] ?? null,
-                'email'    => $p['email'] ?? null,
-                'github'   => $p['github'] ?? null,
-                'linkedin' => $p['linkedin'] ?? null,
-                'location' => $p['location'] ?? null,
-                'status'   => $p['status'] ?? 'Open to work',
+                'name'          => $p['name'] ?? 'Unnamed',
+                'tagline'       => $p['tagline'] ?? null,
+                'hero_subtitle' => $p['hero_subtitle'] ?? $p['heroSubtitle'] ?? null,
+                'bio'           => $p['bio'] ?? null,
+                'email'         => $p['email'] ?? null,
+                'github'        => $p['github'] ?? null,
+                'linkedin'      => $p['linkedin'] ?? null,
+                'twitter'       => $p['twitter'] ?? null,
+                'dribbble'      => $p['dribbble'] ?? null,
+                'website'       => $p['website'] ?? null,
+                'location'      => $p['location'] ?? null,
+                'status'        => $p['status'] ?? 'Open to work',
+                'contact_cta'   => $p['contact_cta'] ?? $p['contactCta'] ?? null,
+                'footer_text'   => $p['footer_text'] ?? $p['footerText'] ?? null,
             ]);
         }
 
@@ -465,11 +485,13 @@ class PortfolioController extends Controller
 
         return Inertia::render('portfolio/appearance', [
             'settings' => [
-                'font_heading'    => $settings->font_heading ?? 'Inter',
-                'font_body'       => $settings->font_body ?? 'Inter',
-                'color_scheme'    => $settings->color_scheme ?? 'brutalist',
-                'animation_style' => $settings->animation_style ?? 'reveal',
-                'name_font_size'  => (float) ($settings->name_font_size ?? 14.0),
+                'font_heading'        => $settings->font_heading ?? 'Inter',
+                'font_body'           => $settings->font_body ?? 'Inter',
+                'color_scheme'        => $settings->color_scheme ?? 'brutalist',
+                'animation_style'     => $settings->animation_style ?? 'reveal',
+                'name_font_size'      => (float) ($settings->name_font_size ?? 14.0),
+                'section_backgrounds' => $settings->section_backgrounds ?? PortfolioSettings::$defaultBackgrounds,
+                'element_visibility'  => $settings->element_visibility ?? PortfolioSettings::$defaultVisibility,
             ],
             'profileName' => $profile->name ?? 'Your Name',
         ]);
@@ -478,11 +500,15 @@ class PortfolioController extends Controller
     public function updateAppearance(Request $request)
     {
         $data = $request->validate([
-            'font_heading'    => 'required|string|max:100',
-            'font_body'       => 'required|string|max:100',
-            'color_scheme'    => 'required|string|max:50',
-            'animation_style' => 'required|string|max:50',
-            'name_font_size'  => 'required|numeric|min:3|max:25',
+            'font_heading'          => 'required|string|max:100',
+            'font_body'             => 'required|string|max:100',
+            'color_scheme'          => 'required|string|max:50',
+            'animation_style'       => 'required|string|max:50',
+            'name_font_size'        => 'required|numeric|min:3|max:25',
+            'section_backgrounds'   => 'nullable|array',
+            'section_backgrounds.*' => 'string|in:default,inverted',
+            'element_visibility'    => 'nullable|array',
+            'element_visibility.*'  => 'boolean',
         ]);
 
         $settings = PortfolioSettings::first();

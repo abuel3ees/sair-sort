@@ -3,17 +3,27 @@
 import { ArrowLeft, ArrowRight, ArrowUpRight, Github, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { usePortfolio } from "@/lib/portfolio-context"
+import { sectionBg } from "@/lib/section-bg"
+import { usePortfolio, useVisible } from "@/lib/portfolio-context"
 
 import type { Project } from "@/lib/portfolio-context"
 
 export function ProjectsSection() {
   const { data } = usePortfolio()
+  const sectionStyle = sectionBg(data.settings, "projects")
   const [activeIndex, setActiveIndex] = useState(0)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [isInView, setIsInView] = useState(false)
   const containerRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Visibility toggles
+  const showProgressBar = useVisible("projects_progress_bar")
+  const showCounter = useVisible("projects_counter")
+  const showTags = useVisible("projects_tags")
+  const showStatusBadge = useVisible("projects_status_badge")
+  const showBgNumber = useVisible("projects_bg_number")
+  const showKeyboardHint = useVisible("projects_keyboard_hint")
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -63,7 +73,7 @@ export function ProjectsSection() {
   // Empty state
   if (data.projects.length === 0) {
     return (
-      <section id="work" className="bg-foreground text-background min-h-[60vh] flex items-center justify-center">
+      <section id="work" className="bg-foreground text-background min-h-[60vh] flex items-center justify-center" style={sectionStyle}>
         <div className="text-center px-6">
           <span className="text-xs font-mono tracking-widest opacity-50 block mb-6">SELECTED WORK</span>
           <h2
@@ -89,14 +99,17 @@ export function ProjectsSection() {
         ref={containerRef}
         id="work"
         className="bg-foreground text-background min-h-screen relative overflow-hidden"
+        style={sectionStyle}
       >
         {/* Section progress bar */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-background/10 z-30">
-          <div
-            className="h-full bg-background/60 transition-all duration-500 ease-out"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
+        {showProgressBar && (
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-background/10 z-30">
+            <div
+              className="h-full bg-background/60 transition-all duration-500 ease-out"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        )}
 
         {/* Fixed header */}
         <div className="absolute top-0 left-0 right-0 z-20 p-6 md:p-10 flex justify-between items-start pointer-events-none">
@@ -110,11 +123,15 @@ export function ProjectsSection() {
           <div
             className={`font-mono text-sm transition-all duration-700 delay-300 ${isInView ? "opacity-100" : "opacity-0"}`}
           >
-            <span className="text-6xl md:text-8xl font-serif font-black tabular-nums">
-              {String(activeIndex + 1).padStart(2, "0")}
-            </span>
-            <span className="opacity-30 mx-2">/</span>
-            <span className="opacity-30">{String(data.projects.length).padStart(2, "0")}</span>
+            {showCounter && (
+              <>
+                <span className="text-6xl md:text-8xl font-serif font-black tabular-nums">
+                  {String(activeIndex + 1).padStart(2, "0")}
+                </span>
+                <span className="opacity-30 mx-2">/</span>
+                <span className="opacity-30">{String(data.projects.length).padStart(2, "0")}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -137,7 +154,7 @@ export function ProjectsSection() {
             <ArrowRight className="w-5 h-5" />
           </button>
           <span className="text-[10px] font-mono tracking-widest opacity-30 ml-2 hidden md:inline">
-            ← → KEYS
+            {showKeyboardHint && "← → KEYS"}
           </span>
         </div>
 
@@ -169,6 +186,9 @@ export function ProjectsSection() {
               index={index}
               isActive={index === activeIndex}
               onViewDetails={() => setSelectedProject(project)}
+              showTags={showTags}
+              showStatusBadge={showStatusBadge}
+              showBgNumber={showBgNumber}
             />
           ))}
         </div>
@@ -184,55 +204,88 @@ function ProjectSlide({
   index,
   isActive,
   onViewDetails,
+  showTags,
+  showStatusBadge,
+  showBgNumber,
 }: {
   project: Project
   index: number
   isActive: boolean
   onViewDetails: () => void
+  showTags: boolean
+  showStatusBadge: boolean
+  showBgNumber: boolean
 }) {
+  const tiltRef = useRef<HTMLElement>(null)
+
+  const onTiltMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    if (!tiltRef.current) return
+    const rect = tiltRef.current.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+    tiltRef.current.style.transform = `perspective(800px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) scale3d(1.02, 1.02, 1.02)`
+  }, [])
+
+  const onTiltLeave = useCallback(() => {
+    if (!tiltRef.current) return
+    tiltRef.current.style.transform = "perspective(800px) rotateY(0deg) rotateX(0deg) scale3d(1, 1, 1)"
+  }, [])
+
   return (
-    <article className="shrink-0 w-screen h-screen snap-center flex flex-col justify-center px-6 md:px-20 lg:px-32 relative">
+    <article
+      ref={tiltRef}
+      onMouseMove={onTiltMove}
+      onMouseLeave={onTiltLeave}
+      className="shrink-0 w-screen h-screen snap-center flex flex-col justify-center px-6 md:px-20 lg:px-32 relative"
+      style={{ transition: "transform 0.3s ease-out" }}
+    >
       {/* Large background number */}
-      <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-serif font-black text-background/3 pointer-events-none transition-all duration-700 select-none ${
-          isActive ? "opacity-100 scale-100" : "opacity-0 scale-90"
-        }`}
-        style={{ fontSize: "clamp(20rem, 50vw, 50rem)" }}
-      >
-        {String(index + 1).padStart(2, "0")}
-      </div>
+      {showBgNumber && (
+        <div
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-serif font-black text-background/3 pointer-events-none transition-all duration-700 select-none ${
+            isActive ? "opacity-100 scale-100" : "opacity-0 scale-90"
+          }`}
+          style={{ fontSize: "clamp(20rem, 50vw, 50rem)" }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </div>
+      )}
 
       {/* Content */}
       <div className="relative z-10 max-w-5xl">
         {/* Tags row */}
-        <div
-          className={`flex flex-wrap gap-3 mb-6 transition-all duration-500 delay-100 ${
-            isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-        >
-          {project.tags.slice(0, 4).map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] font-mono tracking-widest uppercase border border-background/30 px-3 py-1 hover:bg-background/10 transition-colors"
-            >
-              {tag}
-            </span>
-          ))}
-          {project.tags.length > 4 && (
-            <span className="text-[10px] font-mono tracking-widest opacity-40">+{project.tags.length - 4}</span>
-          )}
-          <span
-            className={`text-[10px] font-mono tracking-widest uppercase px-3 py-1 ${
-              project.status === "completed"
-                ? "bg-background text-foreground"
-                : project.status === "in-progress"
-                  ? "border border-background/50 text-background/80"
-                  : "border border-background/30 opacity-50"
+        {showTags && (
+          <div
+            className={`flex flex-wrap gap-3 mb-6 transition-all duration-500 delay-100 ${
+              isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
-            {project.status}
-          </span>
-        </div>
+            {project.tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="text-[10px] font-mono tracking-widest uppercase border border-background/30 px-3 py-1 hover:bg-background/10 transition-colors"
+              >
+                {tag}
+              </span>
+            ))}
+            {project.tags.length > 4 && (
+              <span className="text-[10px] font-mono tracking-widest opacity-40">+{project.tags.length - 4}</span>
+            )}
+            {showStatusBadge && (
+              <span
+                className={`text-[10px] font-mono tracking-widest uppercase px-3 py-1 ${
+                  project.status === "completed"
+                    ? "bg-background text-foreground"
+                    : project.status === "in-progress"
+                      ? "border border-background/50 text-background/80"
+                      : "border border-background/30 opacity-50"
+                }`}
+              >
+                {project.status}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Title */}
         <h2

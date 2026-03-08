@@ -2,13 +2,21 @@
 
 import { useEffect, useRef, useState } from "react"
 
-import { usePortfolio } from "@/lib/portfolio-context"
+import { sectionBg } from "@/lib/section-bg"
+import { usePortfolio, useVisible } from "@/lib/portfolio-context"
 
 export function ExperienceSection() {
   const { data } = usePortfolio()
+  const sectionStyle = sectionBg(data.settings, "experience")
   const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set())
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const sectionRef = useRef<HTMLElement>(null)
+
+  // Visibility toggles
+  const showCount = useVisible("experience_count")
+  const showTimelineDot = useVisible("experience_timeline_dot")
+  const showTypeBadge = useVisible("experience_type_badge")
+  const showTechnologies = useVisible("experience_technologies")
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -30,7 +38,7 @@ export function ExperienceSection() {
 
   if (data.experience.length === 0) {
     return (
-      <section id="experience" className="bg-background py-24 md:py-40">
+      <section id="experience" className="bg-background py-24 md:py-40" style={sectionStyle}>
         <div className="px-6 md:px-10 text-center">
           <span className="text-xs font-mono tracking-widest text-muted-foreground block mb-6">EXPERIENCE</span>
           <p className="text-xl text-muted-foreground">No experience added yet.</p>
@@ -40,7 +48,7 @@ export function ExperienceSection() {
   }
 
   return (
-    <section ref={sectionRef} id="experience" className="bg-background py-24 md:py-40">
+    <section ref={sectionRef} id="experience" className="bg-background py-24 md:py-40" style={sectionStyle}>
       <div className="px-6 md:px-10">
         {/* Header - split layout */}
         <div
@@ -54,9 +62,11 @@ export function ExperienceSection() {
             Experience
           </h2>
           <div className="flex flex-col justify-end">
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-md">
-              {data.experience.length} role{data.experience.length !== 1 ? "s" : ""} across product, engineering, and design.
-            </p>
+            {showCount && (
+              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-md">
+                {data.experience.length} role{data.experience.length !== 1 ? "s" : ""} across product, engineering, and design.
+              </p>
+            )}
           </div>
         </div>
 
@@ -81,13 +91,15 @@ export function ExperienceSection() {
                     {/* Left: Company & Date */}
                     <div className="md:col-span-4 relative">
                       {/* Timeline dot */}
-                      <div
-                        className={`absolute -left-7.25 top-1 hidden md:block transition-all duration-300 ${
-                          isHovered ? "scale-150" : "scale-100"
-                        }`}
-                      >
-                        <div className={`w-2.5 h-2.5 border-2 border-foreground transition-colors duration-300 ${isHovered ? "bg-foreground" : "bg-background"}`} />
-                      </div>
+                      {showTimelineDot && (
+                        <div
+                          className={`absolute -left-7.25 top-1 hidden md:block transition-all duration-300 ${
+                            isHovered ? "scale-150" : "scale-100"
+                          }`}
+                        >
+                          <div className={`w-2.5 h-2.5 border-2 border-foreground transition-colors duration-300 ${isHovered ? "bg-foreground" : "bg-background"}`} />
+                        </div>
+                      )}
                       <span className="text-sm font-mono text-muted-foreground block mb-2">{exp.duration}</span>
                       <h3 className="font-serif font-bold tracking-tight" style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)" }}>
                         {exp.company}
@@ -98,29 +110,33 @@ export function ExperienceSection() {
                     <div className="md:col-span-8">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="text-lg md:text-xl font-medium">{exp.role}</span>
-                        <span
-                          className={`text-xs font-mono px-2 py-1 transition-colors duration-300 ${
-                            isHovered
-                              ? "bg-foreground text-background"
-                              : exp.type === "internship"
-                                ? "border border-foreground"
-                                : "bg-foreground text-background"
-                          }`}
-                        >
-                          {exp.type}
-                        </span>
+                        {showTypeBadge && (
+                          <span
+                            className={`text-xs font-mono px-2 py-1 transition-colors duration-300 ${
+                              isHovered
+                                ? "bg-foreground text-background"
+                                : exp.type === "internship"
+                                  ? "border border-foreground"
+                                  : "bg-foreground text-background"
+                            }`}
+                          >
+                            {exp.type}
+                          </span>
+                        )}
                       </div>
                       <p className="text-muted-foreground leading-relaxed mb-6 max-w-2xl">{exp.description}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {exp.technologies.map((tech) => (
-                          <span
-                            key={tech}
-                            className="text-xs font-mono px-3 py-1 border border-foreground/30 hover:border-foreground hover:bg-foreground hover:text-background transition-colors cursor-default"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
+                      {showTechnologies && (
+                        <div className="flex flex-wrap gap-2">
+                          {exp.technologies.map((tech) => (
+                            <span
+                              key={tech}
+                              className="text-xs font-mono px-3 py-1 border border-foreground/30 hover:border-foreground hover:bg-foreground hover:text-background transition-colors cursor-default"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

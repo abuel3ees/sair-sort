@@ -13,6 +13,8 @@ class PortfolioSettings extends Model
         'font_body',
         'color_scheme',
         'animation_style',
+        'section_backgrounds',
+        'element_visibility',
         'name_font_size',
     ];
 
@@ -21,11 +23,68 @@ class PortfolioSettings extends Model
         return [
             'section_order' => 'array',
             'visible_sections' => 'array',
+            'section_backgrounds' => 'array',
+            'element_visibility' => 'array',
             'name_font_size' => 'float',
         ];
     }
 
     public static $defaultSections = ['hero', 'projects', 'experience', 'education', 'contact'];
+
+    public static $defaultBackgrounds = [
+        'hero' => 'default',
+        'projects' => 'inverted',
+        'experience' => 'default',
+        'education' => 'inverted',
+        'contact' => 'default',
+    ];
+
+    /** Every toggleable element and its default */
+    public static $defaultVisibility = [
+        // Hero
+        'hero_nav' => true,
+        'hero_time' => true,
+        'hero_tagline' => true,
+        'hero_location' => true,
+        'hero_status' => true,
+        'hero_scroll_hint' => true,
+        'hero_line' => true,
+        'hero_grain' => true,
+        'hero_parallax' => true,
+        // Projects
+        'projects_progress_bar' => true,
+        'projects_counter' => true,
+        'projects_tags' => true,
+        'projects_status_badge' => true,
+        'projects_bg_number' => true,
+        'projects_keyboard_hint' => true,
+        // Experience
+        'experience_count' => true,
+        'experience_timeline_dot' => true,
+        'experience_type_badge' => true,
+        'experience_technologies' => true,
+        // Education
+        'education_gpa' => true,
+        'education_highlights' => true,
+        'education_bio' => true,
+        // Contact
+        'contact_email_scramble' => true,
+        'contact_socials' => true,
+        'contact_location' => true,
+        'contact_footer' => true,
+        // Global
+        'scroll_progress' => true,
+        'cursor_trail' => true,
+        'particles' => false,
+        'back_to_top' => true,
+        'smooth_scroll' => true,
+        'page_transition' => true,
+        'konami_code' => true,
+        'staggered_text' => true,
+        'magnetic_buttons' => true,
+        'section_wipe' => true,
+        'text_reveal' => true,
+    ];
 
     public static function current(): self
     {
@@ -36,6 +95,8 @@ class PortfolioSettings extends Model
             'font_body' => 'Inter',
             'color_scheme' => 'brutalist',
             'animation_style' => 'reveal',
+            'section_backgrounds' => self::$defaultBackgrounds,
+            'element_visibility' => self::$defaultVisibility,
             'name_font_size' => 14.0,
         ]);
     }
