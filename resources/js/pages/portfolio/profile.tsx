@@ -94,7 +94,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                     <div>
                         <h1 className="text-2xl font-bold">Profile</h1>
                         <p className="text-muted-foreground text-sm">
-                            Your public-facing profile information.
+                            Your public-facing profile information. This is what visitors see first — make it count.
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -114,7 +114,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Basic Info</CardTitle>
-                            <CardDescription>Name, tagline, and status shown on your portfolio.</CardDescription>
+                            <CardDescription>The big intro on your portfolio. Your name appears as a giant headline in the hero section.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
@@ -123,7 +123,9 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="name"
                                     value={form.data.name}
                                     onChange={(e) => form.setData('name', e.target.value)}
+                                    placeholder="e.g. Jane Doe"
                                 />
+                                <p className="text-xs text-muted-foreground">This is the giant text in your hero section. Keep it short — first + last name works best.</p>
                                 {form.errors.name && <p className="text-destructive text-sm">{form.errors.name}</p>}
                             </div>
                             <div className="space-y-2">
@@ -132,7 +134,9 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="tagline"
                                     value={form.data.tagline}
                                     onChange={(e) => form.setData('tagline', e.target.value)}
+                                    placeholder="e.g. Full-Stack Developer · Creative Thinker"
                                 />
+                                <p className="text-xs text-muted-foreground">A short line that appears beneath your name. Think of it as your elevator pitch.</p>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="hero_subtitle">Hero Subtitle</Label>
@@ -140,8 +144,9 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="hero_subtitle"
                                     value={form.data.hero_subtitle}
                                     onChange={(e) => form.setData('hero_subtitle', e.target.value)}
-                                    placeholder="Optional subtitle shown below your name"
+                                    placeholder="e.g. Building beautiful web experiences"
                                 />
+                                <p className="text-xs text-muted-foreground">Optional extra text shown below your name in the hero. Leave blank if the tagline is enough.</p>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
@@ -151,6 +156,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     onChange={(e) => form.setData('status', e.target.value)}
                                     placeholder="e.g. Open to work, Freelancing, Employed"
                                 />
+                                <p className="text-xs text-muted-foreground">Shows as a small badge on your hero section. Great for recruiters.</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -158,7 +164,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                     <Card>
                         <CardHeader>
                             <CardTitle>About</CardTitle>
-                            <CardDescription>Bio and location.</CardDescription>
+                            <CardDescription>Tell visitors who you are. This appears in the education section of your portfolio.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
@@ -168,7 +174,9 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     rows={4}
                                     value={form.data.bio}
                                     onChange={(e) => form.setData('bio', e.target.value)}
+                                    placeholder="Write a few sentences about yourself, your background, and what you're passionate about..."
                                 />
+                                <p className="text-xs text-muted-foreground">A short paragraph about you. Write in first or third person — whatever feels natural.</p>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
@@ -176,7 +184,9 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="location"
                                     value={form.data.location}
                                     onChange={(e) => form.setData('location', e.target.value)}
+                                    placeholder="e.g. San Francisco, CA"
                                 />
+                                <p className="text-xs text-muted-foreground">Shown on the hero section and contact area. City and country is enough.</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -184,7 +194,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Links</CardTitle>
-                            <CardDescription>Contact and social information.</CardDescription>
+                            <CardDescription>Social links and contact info. These appear as icons on your contact section. Only fill in the ones you want to show.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
@@ -194,6 +204,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     type="email"
                                     value={form.data.email}
                                     onChange={(e) => form.setData('email', e.target.value)}
+                                    placeholder="you@example.com"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -202,6 +213,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="github"
                                     value={form.data.github}
                                     onChange={(e) => form.setData('github', e.target.value)}
+                                    placeholder="e.g. janedoe"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -210,6 +222,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="linkedin"
                                     value={form.data.linkedin}
                                     onChange={(e) => form.setData('linkedin', e.target.value)}
+                                    placeholder="e.g. janedoe"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -218,7 +231,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="twitter"
                                     value={form.data.twitter}
                                     onChange={(e) => form.setData('twitter', e.target.value)}
-                                    placeholder="username (without @)"
+                                    placeholder="e.g. janedoe (without @)"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -227,6 +240,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="dribbble"
                                     value={form.data.dribbble}
                                     onChange={(e) => form.setData('dribbble', e.target.value)}
+                                    placeholder="e.g. janedoe"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -238,6 +252,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     placeholder="https://example.com"
                                 />
                             </div>
+                            <p className="text-xs text-muted-foreground">Leave any field blank to hide it from your portfolio. Just usernames — no full URLs needed for social platforms.</p>
                         </CardContent>
                     </Card>
 
@@ -245,7 +260,7 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Contact Section</CardTitle>
-                            <CardDescription>Customize the contact CTA and footer text.</CardDescription>
+                            <CardDescription>Customize the big call-to-action at the bottom of your portfolio and the footer text.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
@@ -254,9 +269,9 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="contact_cta"
                                     value={form.data.contact_cta}
                                     onChange={(e) => form.setData('contact_cta', e.target.value)}
-                                    placeholder="Let's Talk"
+                                    placeholder="e.g. Let's Talk"
                                 />
-                                <p className="text-xs text-muted-foreground">The big headline on the contact section. First word on line 1, rest on line 2.</p>
+                                <p className="text-xs text-muted-foreground">The big headline on the contact section. The first word appears on one line, the rest on the next. Keep it 2–3 words.</p>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="footer_text">Footer Text</Label>
@@ -264,8 +279,9 @@ export default function ProfileEdit({ profile }: { profile: Profile | null }) {
                                     id="footer_text"
                                     value={form.data.footer_text}
                                     onChange={(e) => form.setData('footer_text', e.target.value)}
-                                    placeholder="Built with Sair"
+                                    placeholder="e.g. Built with Sair"
                                 />
+                                <p className="text-xs text-muted-foreground">Small text at the very bottom of the page. Optional.</p>
                             </div>
                         </CardContent>
                     </Card>

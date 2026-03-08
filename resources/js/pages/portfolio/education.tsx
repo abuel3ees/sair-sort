@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Trash2, X } from 'lucide-react';
+import { GraduationCap, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 
 import type { FormEvent } from 'react';
@@ -80,17 +80,17 @@ function EducationForm({
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="institution">Institution</Label>
-                <Input id="institution" value={form.data.institution} onChange={(e) => form.setData('institution', e.target.value)} />
+                <Input id="institution" value={form.data.institution} onChange={(e) => form.setData('institution', e.target.value)} placeholder="e.g. MIT, Stanford, University of London" />
                 {form.errors.institution && <p className="text-destructive text-sm">{form.errors.institution}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="degree">Degree</Label>
-                    <Input id="degree" value={form.data.degree} onChange={(e) => form.setData('degree', e.target.value)} />
+                    <Input id="degree" value={form.data.degree} onChange={(e) => form.setData('degree', e.target.value)} placeholder="e.g. B.Sc, M.A., Ph.D." />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="field">Field of study</Label>
-                    <Input id="field" value={form.data.field} onChange={(e) => form.setData('field', e.target.value)} />
+                    <Input id="field" value={form.data.field} onChange={(e) => form.setData('field', e.target.value)} placeholder="e.g. Computer Science" />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -165,7 +165,9 @@ export default function EducationPage({ educations }: { educations: Education[] 
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Education</h1>
-                        <p className="text-muted-foreground text-sm">{educations.length} entry/entries</p>
+                        <p className="text-muted-foreground text-sm">
+                            Your academic background. Each entry shows on a clean card with your degree, institution, and highlights.
+                        </p>
                     </div>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
@@ -202,8 +204,12 @@ export default function EducationPage({ educations }: { educations: Education[] 
 
                 {educations.length === 0 && (
                     <Card>
-                        <CardContent className="py-12 text-center text-muted-foreground">
-                            No education entries yet. Click "Add Education" to create one.
+                        <CardContent className="py-12 text-center">
+                            <GraduationCap className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+                            <p className="text-muted-foreground font-medium">No education yet</p>
+                            <p className="text-muted-foreground text-sm mt-1 max-w-sm mx-auto">
+                                Add your academic background — degrees, certifications, bootcamps, or any relevant education.
+                            </p>
                         </CardContent>
                     </Card>
                 )}

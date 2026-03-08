@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Briefcase, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 
 import type { FormEvent } from 'react';
@@ -83,12 +83,12 @@ function ExperienceForm({
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="company">Company</Label>
-                    <Input id="company" value={form.data.company} onChange={(e) => form.setData('company', e.target.value)} />
+                    <Input id="company" value={form.data.company} onChange={(e) => form.setData('company', e.target.value)} placeholder="e.g. Google" />
                     {form.errors.company && <p className="text-destructive text-sm">{form.errors.company}</p>}
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
-                    <Input id="role" value={form.data.role} onChange={(e) => form.setData('role', e.target.value)} />
+                    <Input id="role" value={form.data.role} onChange={(e) => form.setData('role', e.target.value)} placeholder="e.g. Software Engineer" />
                     {form.errors.role && <p className="text-destructive text-sm">{form.errors.role}</p>}
                 </div>
             </div>
@@ -114,7 +114,8 @@ function ExperienceForm({
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <Textarea id="description" rows={3} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                <Textarea id="description" rows={3} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} placeholder="What did you work on? What impact did you make?" />
+                <p className="text-xs text-muted-foreground">A brief summary of your responsibilities and achievements.</p>
             </div>
             <div className="space-y-2">
                 <Label>Technologies</Label>
@@ -141,6 +142,7 @@ function ExperienceForm({
             <div className="space-y-2">
                 <Label htmlFor="sort_order">Sort order</Label>
                 <Input id="sort_order" type="number" value={form.data.sort_order} onChange={(e) => form.setData('sort_order', Number(e.target.value))} />
+                <p className="text-xs text-muted-foreground">Lower numbers appear first. Use 0 for your most recent role.</p>
             </div>
             <Button type="submit" disabled={form.processing}>
                 {form.processing ? 'Saving…' : 'Save'}
@@ -178,7 +180,9 @@ export default function ExperiencePage({ experiences }: { experiences: Experienc
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Experience</h1>
-                        <p className="text-muted-foreground text-sm">{experiences.length} position(s)</p>
+                        <p className="text-muted-foreground text-sm">
+                            Your professional history. Each entry appears as a timeline item on your portfolio.
+                        </p>
                     </div>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
@@ -215,8 +219,12 @@ export default function ExperiencePage({ experiences }: { experiences: Experienc
 
                 {experiences.length === 0 && (
                     <Card>
-                        <CardContent className="py-12 text-center text-muted-foreground">
-                            No experience entries yet. Click "Add Experience" to create one.
+                        <CardContent className="py-12 text-center">
+                            <Briefcase className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+                            <p className="text-muted-foreground font-medium">No experience yet</p>
+                            <p className="text-muted-foreground text-sm mt-1 max-w-sm mx-auto">
+                                Add your work experience — jobs, internships, freelance work, or anything relevant. Each entry shows as a timeline item.
+                            </p>
                         </CardContent>
                     </Card>
                 )}
@@ -252,6 +260,12 @@ export default function ExperiencePage({ experiences }: { experiences: Experienc
                         </Card>
                     ))}
                 </div>
+
+                {experiences.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                        <strong>Tip:</strong> Add technologies you used at each role — they appear as tags on your portfolio and help visitors understand your tech stack at a glance.
+                    </p>
+                )}
             </div>
         </AppLayout>
     );

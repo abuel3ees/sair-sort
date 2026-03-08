@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { ImagePlus, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
+import { FolderGit2, ImagePlus, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 import type { FormEvent } from 'react';
@@ -93,16 +93,18 @@ function ProjectForm({
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="title">Title</Label>
-                <Input id="title" value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} />
+                <Input id="title" value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} placeholder="e.g. Portfolio Website" />
                 {form.errors.title && <p className="text-destructive text-sm">{form.errors.title}</p>}
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Short description</Label>
-                <Textarea id="description" rows={2} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                <Textarea id="description" rows={2} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} placeholder="One or two sentences about what this project does" />
+                <p className="text-xs text-muted-foreground">Shown on the project card. Keep it brief.</p>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="long_description">Detailed description</Label>
-                <Textarea id="long_description" rows={4} value={form.data.long_description} onChange={(e) => form.setData('long_description', e.target.value)} />
+                <Textarea id="long_description" rows={4} value={form.data.long_description} onChange={(e) => form.setData('long_description', e.target.value)} placeholder="Go into more detail — what problem does it solve, what technologies did you use, what did you learn?" />
+                <p className="text-xs text-muted-foreground">Shown when visitors expand the project. Optional but recommended.</p>
             </div>
             <div className="space-y-2">
                 <Label>Status</Label>
@@ -142,16 +144,17 @@ function ProjectForm({
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="github">GitHub URL</Label>
-                    <Input id="github" value={form.data.github} onChange={(e) => form.setData('github', e.target.value)} />
+                    <Input id="github" value={form.data.github} onChange={(e) => form.setData('github', e.target.value)} placeholder="https://github.com/you/project" />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="demo">Demo URL</Label>
-                    <Input id="demo" value={form.data.demo} onChange={(e) => form.setData('demo', e.target.value)} />
+                    <Input id="demo" value={form.data.demo} onChange={(e) => form.setData('demo', e.target.value)} placeholder="https://myproject.com" />
                 </div>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="sort_order">Sort order</Label>
                 <Input id="sort_order" type="number" value={form.data.sort_order} onChange={(e) => form.setData('sort_order', Number(e.target.value))} />
+                <p className="text-xs text-muted-foreground">Lower numbers appear first. Use 0, 1, 2… to control the order.</p>
             </div>
             <Button type="submit" disabled={form.processing}>
                 {form.processing ? 'Saving…' : 'Save'}
@@ -280,7 +283,9 @@ export default function ProjectsPage({ projects }: { projects: Project[] }) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Projects</h1>
-                        <p className="text-muted-foreground text-sm">{projects.length} project(s)</p>
+                        <p className="text-muted-foreground text-sm">
+                            Your best work, front and center. Each project appears as a full-width slide on your portfolio with horizontal scrolling.
+                        </p>
                     </div>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
@@ -318,8 +323,12 @@ export default function ProjectsPage({ projects }: { projects: Project[] }) {
 
                 {projects.length === 0 && (
                     <Card>
-                        <CardContent className="py-12 text-center text-muted-foreground">
-                            No projects yet. Click "Add Project" to create one.
+                        <CardContent className="py-12 text-center">
+                            <FolderGit2 className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+                            <p className="text-muted-foreground font-medium">No projects yet</p>
+                            <p className="text-muted-foreground text-sm mt-1 max-w-sm mx-auto">
+                                Add your first project to showcase your work. Include a title, description, tags, and links to source code or live demos.
+                            </p>
                         </CardContent>
                     </Card>
                 )}
@@ -355,6 +364,12 @@ export default function ProjectsPage({ projects }: { projects: Project[] }) {
                         </Card>
                     ))}
                 </div>
+
+                {projects.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                        <strong>Tip:</strong> Upload images or PDFs to each project using the "Add Files" button on the card. Images will be displayed as a gallery on your portfolio. You can also attach screenshots, mockups, or documents.
+                    </p>
+                )}
             </div>
         </AppLayout>
     );
