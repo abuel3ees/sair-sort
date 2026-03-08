@@ -12,7 +12,9 @@ const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "Ar
  */
 export function KonamiEasterEgg() {
   const { data } = usePortfolio()
-  const enabled = data.settings.elementVisibility?.konami_code ?? true
+  const vis = data.settings.elementVisibility as Record<string, boolean>
+  const groupOff = vis.effects_easter_eggs === false
+  const enabled = !groupOff && (vis.konami_code ?? true)
   const [triggered, setTriggered] = useState(false)
   const indexRef = useRef(0)
 

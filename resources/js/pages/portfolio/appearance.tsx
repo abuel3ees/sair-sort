@@ -1,8 +1,10 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Check, Loader2 } from 'lucide-react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { Check, ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 
@@ -188,16 +190,10 @@ const VISIBILITY_GROUPS = [
     {
         label: 'Global Effects',
         items: [
-            { key: 'scroll_progress', label: 'Scroll Progress Bar', description: 'Top-of-page progress line' },
-            { key: 'cursor_trail', label: 'Cursor Trail', description: 'Glowing dot follows mouse' },
-            { key: 'back_to_top', label: 'Back to Top', description: 'Floating scroll-to-top button' },
-            { key: 'smooth_scroll', label: 'Smooth Scroll', description: 'CSS smooth scrolling behavior' },
-            { key: 'particles', label: 'Floating Particles', description: 'Canvas geometric shapes drifting' },
-            { key: 'konami_code', label: 'Konami Code Easter Egg', description: '↑↑↓↓←→←→BA triggers confetti' },
-            { key: 'staggered_text', label: 'Staggered Name Animation', description: 'Per-character hero name reveal' },
-            { key: 'magnetic_buttons', label: 'Magnetic Buttons', description: 'Links follow cursor on hover' },
-            { key: 'section_wipe', label: 'Section Wipe Reveal', description: 'Curtain reveal on scroll' },
-            { key: 'text_reveal', label: 'Text Reveal on Scroll', description: 'Word-by-word bio animation' },
+            { key: 'effects_cursor', label: 'Cursor Effects', description: 'Cursor trail, spotlight, and magnetic buttons' },
+            { key: 'effects_scroll', label: 'Scroll Animations', description: 'Smooth scroll, progress bar, section wipe, text reveal, staggered text, back to top' },
+            { key: 'effects_visual', label: 'Visual Flair', description: 'Particles, marquee ticker, parallax strip, glitch text, typewriter, scramble headings' },
+            { key: 'effects_easter_eggs', label: 'Easter Eggs', description: 'Konami code confetti and other hidden surprises' },
         ],
     },
 ];
@@ -209,6 +205,8 @@ type Props = {
         color_scheme: string;
         animation_style: string;
         name_font_size: number;
+        site_title: string;
+        favicon_path: string | null;
         section_backgrounds: Record<string, string>;
         element_visibility: Record<string, boolean>;
     };
@@ -222,9 +220,12 @@ export default function AppearancePage({ settings, profileName }: Props) {
         color_scheme: settings.color_scheme,
         animation_style: settings.animation_style,
         name_font_size: settings.name_font_size,
+        site_title: settings.site_title ?? '',
         section_backgrounds: settings.section_backgrounds ?? {},
         element_visibility: settings.element_visibility ?? {},
     });
+
+    const faviconRef = useRef<HTMLInputElement>(null);
 
     // ── Auto-save with debounce ──────────────────────────
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -259,6 +260,7 @@ export default function AppearancePage({ settings, profileName }: Props) {
         form.data.color_scheme,
         form.data.animation_style,
         form.data.name_font_size,
+        form.data.site_title,
         sectionBgKey,
         visibilityKey,
         save,
@@ -276,6 +278,80 @@ export default function AppearancePage({ settings, profileName }: Props) {
                 </div>
 
                 <div className="space-y-8 max-w-4xl">
+                    {/* ── Site Title & Favicon ─────────── */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Site Title & Favicon</CardTitle>
+                            <CardDescription>Set the browser tab title and icon for your portfolio.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="site_title">Site Title</Label>
+                                <Input
+                                    id="site_title"
+                                    placeholder="My Portfolio"
+                                    value={form.data.site_title}
+                                    onChange={(e) => form.setData('site_title', e.target.value)}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Shown in the browser tab. Leave empty to use your name.
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                <Label>Favicon</Label>
+                                <div className="flex items-center gap-4">
+                                    {settings.favicon_path ? (
+                                        <div className="relative group">
+                                            <img
+                                                src={settings.favicon_path}
+                                                alt="Current favicon"
+                                                className="w-12 h-12 border object-contain bg-muted"
+                                            />
+                                            <Button
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute -top-2 -right-2 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => router.delete('/portfolio/favicon')}
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="w-12 h-12 border border-dashed flex items-center justify-center bg-muted/30">
+                                            <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => faviconRef.current?.click()}
+                                        >
+                                            {settings.favicon_path ? 'Replace' : 'Upload Favicon'}
+                                        </Button>
+                                        <input
+                                            ref={faviconRef}
+                                            type="file"
+                                            accept=".ico,.png,.svg,.jpg,.jpeg,.gif,.webp"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                const formData = new FormData();
+                                                formData.append('favicon', file);
+                                                router.post('/portfolio/favicon', formData, { forceFormData: true });
+                                            }}
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            ICO, PNG, SVG, or JPG. Max 2 MB.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     {/* ── Fonts ────────────────────────── */}
                     <Card>
                         <CardHeader>

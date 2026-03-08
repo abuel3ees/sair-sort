@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import { ElasticScrollIndicator } from "@/components/portfolio/elastic-scroll-indicator"
 import { StaggeredText } from "@/components/portfolio/staggered-text"
+import { Typewriter } from "@/components/portfolio/typewriter"
 import { sectionBg } from "@/lib/section-bg"
 import { usePortfolio, useVisible } from "@/lib/portfolio-context"
 
@@ -27,6 +29,7 @@ export function HeroSection() {
   const showParallax = useVisible("hero_parallax")
   const showScrollProgress = useVisible("scroll_progress")
   const showStaggered = useVisible("staggered_text")
+  const showTypewriter = useVisible("typewriter_subtitle")
 
   useEffect(() => {
     if (!mountedRef.current) {
@@ -168,7 +171,12 @@ export function HeroSection() {
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
-              {data.profile.heroSubtitle}
+              <Typewriter
+                text={data.profile.heroSubtitle}
+                enabled={showTypewriter && isVisible}
+                speed={50}
+                startDelay={1200}
+              />
             </p>
           )}
         </div>
@@ -215,15 +223,10 @@ export function HeroSection() {
       {/* Scroll hint */}
       {showScrollHint && (
         <div
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          className="absolute bottom-12 left-1/2 -translate-x-1/2"
           style={{ opacity: Math.max(0, 1 - scrollY / 150) }}
         >
-          <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">
-            Scroll
-          </span>
-          <div className="w-px h-10 bg-foreground/30 overflow-hidden">
-            <div className="w-full h-1/2 bg-foreground animate-bounce" />
-          </div>
+          <ElasticScrollIndicator />
         </div>
       )}
     </section>

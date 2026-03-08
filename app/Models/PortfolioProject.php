@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PortfolioProject extends Model
 {
@@ -22,5 +23,10 @@ class PortfolioProject extends Model
         return [
             'tags' => 'array',
         ];
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProjectImage::class, 'portfolio_project_id')->orderBy('sort_order');
     }
 }

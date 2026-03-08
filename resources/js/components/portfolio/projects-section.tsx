@@ -239,6 +239,18 @@ function ProjectSlide({
       className="shrink-0 w-screen h-screen snap-center flex flex-col justify-center px-6 md:px-20 lg:px-32 relative"
       style={{ transition: "transform 0.3s ease-out" }}
     >
+      {/* Cover image (if available) */}
+      {project.images && project.images.length > 0 && project.images[0].mimeType.startsWith("image/") && (
+        <div className="absolute inset-0 z-0">
+          <img
+            src={project.images[0].url}
+            alt=""
+            className="w-full h-full object-cover opacity-15"
+          />
+          <div className="absolute inset-0 bg-linear-to-r from-current/80 via-current/60 to-transparent" />
+        </div>
+      )}
+
       {/* Large background number */}
       {showBgNumber && (
         <div
@@ -289,10 +301,11 @@ function ProjectSlide({
 
         {/* Title */}
         <h2
-          className={`font-serif font-black tracking-[-0.04em] leading-[0.85] mb-8 transition-all duration-700 ${
+          className={`glitch-text font-serif font-black tracking-[-0.04em] leading-[0.85] mb-8 transition-all duration-700 ${
             isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
           style={{ fontSize: "clamp(3rem, 10vw, 8rem)" }}
+          data-text={project.title}
         >
           {project.title}
         </h2>
@@ -402,12 +415,57 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
         </button>
 
         <div className="min-h-full p-6 md:p-12 lg:p-20">
-          {/* Project image placeholder */}
-          <div className="aspect-video w-full img-placeholder mb-12 md:mb-16 flex items-center justify-center border border-foreground/10">
-            <span className="text-sm font-mono text-muted-foreground/40 uppercase tracking-widest">
-              {project.title}
-            </span>
-          </div>
+          {/* Project images */}
+          {project.images && project.images.length > 0 ? (
+            <div className="mb-12 md:mb-16 space-y-4">
+              {/* Hero image */}
+              {project.images.filter((img) => img.mimeType.startsWith("image/")).slice(0, 1).map((img) => (
+                <div key={img.id} className="aspect-video w-full overflow-hidden border border-foreground/10">
+                  <img
+                    src={img.url}
+                    alt={img.originalName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+              {/* Additional images grid */}
+              {project.images.filter((img) => img.mimeType.startsWith("image/")).length > 1 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {project.images.filter((img) => img.mimeType.startsWith("image/")).slice(1).map((img) => (
+                    <div key={img.id} className="aspect-video overflow-hidden border border-foreground/10">
+                      <img
+                        src={img.url}
+                        alt={img.originalName}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Non-image files (e.g. PDFs) */}
+              {project.images.filter((img) => !img.mimeType.startsWith("image/")).length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {project.images.filter((img) => !img.mimeType.startsWith("image/")).map((file) => (
+                    <a
+                      key={file.id}
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-colors text-sm font-mono"
+                    >
+                      {file.originalName}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="aspect-video w-full img-placeholder mb-12 md:mb-16 flex items-center justify-center border border-foreground/10">
+              <span className="text-sm font-mono text-muted-foreground/40 uppercase tracking-widest">
+                {project.title}
+              </span>
+            </div>
+          )}
 
           <header className="mb-12 md:mb-20">
             <div className="flex flex-wrap gap-2 mb-6">

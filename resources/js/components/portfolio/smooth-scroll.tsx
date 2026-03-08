@@ -10,7 +10,9 @@ import { usePortfolio } from "@/lib/portfolio-context"
  */
 export function SmoothScroll() {
   const { data } = usePortfolio()
-  const enabled = data.settings.elementVisibility?.smooth_scroll ?? true
+  const vis = data.settings.elementVisibility as Record<string, boolean>
+  const groupOff = vis.effects_scroll === false
+  const enabled = !groupOff && (vis.smooth_scroll ?? true)
 
   useEffect(() => {
     if (!enabled) return

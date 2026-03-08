@@ -1,6 +1,6 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
+import { ImagePlus, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 import type { FormEvent } from 'react';
 
@@ -22,6 +22,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/portfolio/projects' },
 ];
 
+type ProjectImageType = {
+    id: number;
+    file_path: string;
+    original_name: string;
+    mime_type: string;
+    sort_order: number;
+};
+
 type Project = {
     id: number;
     title: string;
@@ -32,6 +40,7 @@ type Project = {
     github: string | null;
     demo: string | null;
     sort_order: number;
+    images: ProjectImageType[];
 };
 
 const emptyProject = {
@@ -151,6 +160,97 @@ function ProjectForm({
     );
 }
 
+function ImageManager({ project }: { project: Project }) {
+    const fileRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+
+    function handleUpload(files: FileList | null) {
+        if (!files || files.length === 0) return;
+        const formData = new FormData();
+        Array.from(files).forEach((file) => formData.append('images[]', file));
+
+        setUploading(true);
+        router.post(`/portfolio/projects/${project.id}/images`, formData, {
+            forceFormData: true,
+            onFinish: () => setUploading(false),
+        });
+    }
+
+    function handleDelete(imageId: number) {
+        if (confirm('Remove this file?')) {
+            router.delete(`/portfolio/projects/${project.id}/images/${imageId}`);
+        }
+    }
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-between">
+                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                    Files & Images ({project.images?.length ?? 0})
+                </Label>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                >
+                    {uploading ? (
+                        <>
+                            <Upload className="h-3 w-3 mr-1 animate-spin" />
+                            Uploading…
+                        </>
+                    ) : (
+                        <>
+                            <ImagePlus className="h-3 w-3 mr-1" />
+                            Add Files
+                        </>
+                    )}
+                </Button>
+                <input
+                    ref={fileRef}
+                    type="file"
+                    multiple
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    onChange={(e) => handleUpload(e.target.files)}
+                />
+            </div>
+
+            {project.images && project.images.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                    {project.images.map((img) => (
+                        <div key={img.id} className="relative group border overflow-hidden">
+                            {img.mime_type.startsWith('image/') ? (
+                                <img
+                                    src={`/storage/${img.file_path}`}
+                                    alt={img.original_name}
+                                    className="w-full aspect-square object-cover"
+                                />
+                            ) : (
+                                <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                                    <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                                        {img.original_name.split('.').pop()}
+                                    </span>
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => handleDelete(img.id)}
+                                className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                            <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-[9px] text-white truncate block">{img.original_name}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function ProjectsPage({ projects }: { projects: Project[] }) {
     const [open, setOpen] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
@@ -241,15 +341,16 @@ export default function ProjectsPage({ projects }: { projects: Project[] }) {
                                     </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="space-y-4">
                                 <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
                                 {project.tags && project.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-3">
+                                    <div className="flex flex-wrap gap-1">
                                         {project.tags.map((tag) => (
                                             <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                                         ))}
                                     </div>
                                 )}
+                                <ImageManager project={project} />
                             </CardContent>
                         </Card>
                     ))}

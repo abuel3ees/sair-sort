@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
+import { ScrambleHeading } from "@/components/portfolio/scramble-heading"
 import { sectionBg } from "@/lib/section-bg"
 import { usePortfolio, useVisible } from "@/lib/portfolio-context"
 
@@ -58,9 +59,11 @@ export function ExperienceSection() {
             visibleItems.has("exp-header") ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <h2 className="font-serif font-black tracking-[-0.03em] leading-[0.9]" style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}>
-            Experience
-          </h2>
+          <ScrambleHeading
+            text="Experience"
+            className="font-serif font-black tracking-[-0.03em] leading-[0.9]"
+            style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}
+          />
           <div className="flex flex-col justify-end">
             {showCount && (
               <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-md">

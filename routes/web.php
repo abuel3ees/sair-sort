@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/projects/{project}',    [PortfolioController::class, 'updateProject'])->name('projects.update');
         Route::delete('/projects/{project}', [PortfolioController::class, 'destroyProject'])->name('projects.destroy');
 
+        Route::post('/projects/{project}/images',          [PortfolioController::class, 'uploadProjectImages'])->name('projects.images.store');
+        Route::delete('/projects/{project}/images/{image}', [PortfolioController::class, 'deleteProjectImage'])->name('projects.images.destroy');
+
         Route::get('/experience',   [PortfolioController::class, 'experienceIndex'])->name('experience.index');
         Route::post('/experience',  [PortfolioController::class, 'storeExperience'])->name('experience.store');
         Route::put('/experience/{experience}',    [PortfolioController::class, 'updateExperience'])->name('experience.update');
@@ -48,6 +51,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/appearance',  [PortfolioController::class, 'appearanceIndex'])->name('appearance.index');
         Route::put('/appearance',  [PortfolioController::class, 'updateAppearance'])->name('appearance.update');
+
+        Route::post('/favicon',    [PortfolioController::class, 'uploadFavicon'])->name('favicon.upload');
+        Route::delete('/favicon',  [PortfolioController::class, 'deleteFavicon'])->name('favicon.delete');
 
         Route::get('/preview-data', [PortfolioController::class, 'previewData'])->name('preview.data');
     });

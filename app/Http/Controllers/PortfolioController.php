@@ -7,6 +7,7 @@ use App\Models\PortfolioExperience;
 use App\Models\PortfolioProfile;
 use App\Models\PortfolioProject;
 use App\Models\PortfolioSettings;
+use App\Models\ProjectImage;
 use App\Models\VisitorLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +23,7 @@ class PortfolioController extends Controller
     public static function portfolioData(): array
     {
         $profile = PortfolioProfile::first();
-        $projects = PortfolioProject::orderBy('sort_order')->get();
+        $projects = PortfolioProject::with('images')->orderBy('sort_order')->get();
         $experience = PortfolioExperience::orderBy('sort_order')->get();
         $education = PortfolioEducation::orderBy('sort_order')->get();
         $settings = PortfolioSettings::current();
@@ -54,6 +55,12 @@ class PortfolioController extends Controller
                 'status'          => $p->status,
                 'github'          => $p->github,
                 'demo'            => $p->demo,
+                'images'          => $p->images->map(fn ($img) => [
+                    'id'           => (string) $img->id,
+                    'url'          => asset('storage/' . $img->file_path),
+                    'originalName' => $img->original_name,
+                    'mimeType'     => $img->mime_type,
+                ])->values()->all(),
             ])->values()->all(),
             'experience' => $experience->map(fn ($e) => [
                 'id'           => (string) $e->id,
@@ -81,6 +88,8 @@ class PortfolioController extends Controller
                 'colorScheme'        => $settings->color_scheme ?? 'brutalist',
                 'animationStyle'     => $settings->animation_style ?? 'reveal',
                 'nameFontSize'       => (float) ($settings->name_font_size ?? 14.0),
+                'siteTitle'          => $settings->site_title ?? '',
+                'faviconUrl'         => $settings->favicon_path ? asset('storage/' . $settings->favicon_path) : null,
                 'sectionBackgrounds' => $settings->section_backgrounds ?? PortfolioSettings::$defaultBackgrounds,
                 'elementVisibility'  => $settings->element_visibility ?? PortfolioSettings::$defaultVisibility,
             ],
@@ -141,7 +150,7 @@ class PortfolioController extends Controller
     public function projectsIndex()
     {
         return Inertia::render('portfolio/projects', [
-            'projects' => PortfolioProject::orderBy('sort_order')->get(),
+            'projects' => PortfolioProject::with('images')->orderBy('sort_order')->get(),
         ]);
     }
 
@@ -185,9 +194,49 @@ class PortfolioController extends Controller
 
     public function destroyProject(PortfolioProject $project)
     {
+        // Delete all associated images from storage
+        foreach ($project->images as $image) {
+            Storage::disk('public')->delete($image->file_path);
+        }
+
         $project->delete();
 
         return back()->with('success', 'Project deleted.');
+    }
+
+    public function uploadProjectImages(Request $request, PortfolioProject $project)
+    {
+        $request->validate([
+            'images'   => 'required|array|max:20',
+            'images.*' => 'file|mimes:jpg,jpeg,png,gif,webp,svg,pdf|max:10240',
+        ]);
+
+        $maxOrder = $project->images()->max('sort_order') ?? -1;
+
+        $uploaded = [];
+        foreach ($request->file('images') as $file) {
+            $path = $file->store('project-images', 'public');
+            $uploaded[] = $project->images()->create([
+                'file_path'     => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type'     => $file->getClientMimeType(),
+                'sort_order'    => ++$maxOrder,
+            ]);
+        }
+
+        return back()->with('success', count($uploaded) . ' file(s) uploaded.');
+    }
+
+    public function deleteProjectImage(PortfolioProject $project, ProjectImage $image)
+    {
+        if ($image->portfolio_project_id !== $project->id) {
+            abort(403);
+        }
+
+        Storage::disk('public')->delete($image->file_path);
+        $image->delete();
+
+        return back()->with('success', 'Image removed.');
     }
 
     // ── Admin: Experience ───────────────────────────────
@@ -490,6 +539,8 @@ class PortfolioController extends Controller
                 'color_scheme'        => $settings->color_scheme ?? 'brutalist',
                 'animation_style'     => $settings->animation_style ?? 'reveal',
                 'name_font_size'      => (float) ($settings->name_font_size ?? 14.0),
+                'site_title'          => $settings->site_title ?? '',
+                'favicon_path'        => $settings->favicon_path ? asset('storage/' . $settings->favicon_path) : null,
                 'section_backgrounds' => $settings->section_backgrounds ?? PortfolioSettings::$defaultBackgrounds,
                 'element_visibility'  => $settings->element_visibility ?? PortfolioSettings::$defaultVisibility,
             ],
@@ -505,6 +556,7 @@ class PortfolioController extends Controller
             'color_scheme'          => 'required|string|max:50',
             'animation_style'       => 'required|string|max:50',
             'name_font_size'        => 'required|numeric|min:3|max:25',
+            'site_title'            => 'nullable|string|max:255',
             'section_backgrounds'   => 'nullable|array',
             'section_backgrounds.*' => 'string|in:default,inverted',
             'element_visibility'    => 'nullable|array',
@@ -522,6 +574,44 @@ class PortfolioController extends Controller
         }
 
         return back()->with('success', 'Appearance updated.');
+    }
+
+    // ── Favicon Upload / Delete ─────────────────────────
+
+    public function uploadFavicon(Request $request)
+    {
+        $request->validate([
+            'favicon' => 'required|file|mimes:ico,png,svg,jpg,jpeg,gif,webp|max:2048',
+        ]);
+
+        $settings = PortfolioSettings::first();
+        if (! $settings) {
+            $settings = PortfolioSettings::create([
+                'section_order' => PortfolioSettings::$defaultSections,
+                'visible_sections' => PortfolioSettings::$defaultSections,
+            ]);
+        }
+
+        // Delete old favicon if exists
+        if ($settings->favicon_path) {
+            Storage::disk('public')->delete($settings->favicon_path);
+        }
+
+        $path = $request->file('favicon')->store('favicon', 'public');
+        $settings->update(['favicon_path' => $path]);
+
+        return back()->with('success', 'Favicon uploaded.');
+    }
+
+    public function deleteFavicon()
+    {
+        $settings = PortfolioSettings::first();
+        if ($settings && $settings->favicon_path) {
+            Storage::disk('public')->delete($settings->favicon_path);
+            $settings->update(['favicon_path' => null]);
+        }
+
+        return back()->with('success', 'Favicon removed.');
     }
 
     // ── Admin: Live Preview Data ────────────────────────

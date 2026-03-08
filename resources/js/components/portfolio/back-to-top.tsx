@@ -11,7 +11,9 @@ import { usePortfolio } from "@/lib/portfolio-context"
  */
 export function BackToTop() {
   const { data } = usePortfolio()
-  const enabled = data.settings.elementVisibility?.back_to_top ?? true
+  const vis = data.settings.elementVisibility as Record<string, boolean>
+  const groupOff = vis.effects_scroll === false
+  const enabled = !groupOff && (vis.back_to_top ?? true)
   const [show, setShow] = useState(false)
 
   useEffect(() => {

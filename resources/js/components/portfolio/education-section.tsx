@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
+import { ScrambleHeading } from "@/components/portfolio/scramble-heading"
 import { TextReveal } from "@/components/portfolio/text-reveal"
 import { sectionBg } from "@/lib/section-bg"
 import { usePortfolio, useVisible } from "@/lib/portfolio-context"
@@ -51,9 +52,11 @@ export function EducationSection() {
           }`}
         >
           <span className="text-xs font-mono tracking-widest opacity-50 block mb-4">BACKGROUND</span>
-          <h2 className="font-serif font-black tracking-[-0.03em] leading-[0.9]" style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}>
-            Education
-          </h2>
+          <ScrambleHeading
+            text="Education"
+            className="font-serif font-black tracking-[-0.03em] leading-[0.9]"
+            style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}
+          />
         </div>
 
         {/* Education entries */}

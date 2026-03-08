@@ -10,7 +10,9 @@ import { usePortfolio } from "@/lib/portfolio-context"
  */
 export function FloatingParticles() {
   const { data } = usePortfolio()
-  const enabled = data.settings.elementVisibility?.particles ?? false
+  const vis = data.settings.elementVisibility as Record<string, boolean>
+  const groupOff = vis.effects_visual === false
+  const enabled = !groupOff && (vis.particles ?? false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {

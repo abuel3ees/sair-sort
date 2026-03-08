@@ -32,9 +32,18 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        @php
+            $__settings = \App\Models\PortfolioSettings::first();
+            $__favicon = $__settings?->favicon_path ? asset('storage/' . $__settings->favicon_path) : null;
+        @endphp
+
+        @if($__favicon)
+            <link rel="icon" href="{{ $__favicon }}">
+        @else
+            <link rel="icon" href="/favicon.ico" sizes="any">
+            <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        @endif
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900|space-mono:400,700|playfair-display:400,700,800,900" rel="stylesheet" />

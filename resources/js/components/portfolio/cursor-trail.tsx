@@ -10,7 +10,9 @@ import { usePortfolio } from "@/lib/portfolio-context"
  */
 export function CursorTrail() {
   const { data } = usePortfolio()
-  const enabled = data.settings.elementVisibility?.cursor_trail ?? true
+  const vis = data.settings.elementVisibility as Record<string, boolean>
+  const groupOff = vis.effects_cursor === false
+  const enabled = !groupOff && (vis.cursor_trail ?? true)
   const dotRef = useRef<HTMLDivElement>(null)
   const trailRef = useRef<HTMLDivElement>(null)
   const posRef = useRef({ x: 0, y: 0 })

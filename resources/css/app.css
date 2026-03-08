@@ -550,3 +550,83 @@
 .marquee-track:hover {
   animation-play-state: paused;
 }
+
+/* ────────────────────────────────────────────────────────
+   Glitch text — clip-path noise distortion on hover
+   ──────────────────────────────────────────────────────── */
+@keyframes glitch-1 {
+  0%   { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 2px); }
+  20%  { clip-path: inset(50% 0 20% 0); transform: translate(3px, -1px); }
+  40%  { clip-path: inset(10% 0 70% 0); transform: translate(-2px, 1px); }
+  60%  { clip-path: inset(70% 0 10% 0); transform: translate(2px, -2px); }
+  80%  { clip-path: inset(40% 0 30% 0); transform: translate(-1px, 2px); }
+  100% { clip-path: inset(30% 0 50% 0); transform: translate(1px, -1px); }
+}
+@keyframes glitch-2 {
+  0%   { clip-path: inset(60% 0 10% 0); transform: translate(3px, -2px); }
+  20%  { clip-path: inset(10% 0 60% 0); transform: translate(-3px, 1px); }
+  40%  { clip-path: inset(50% 0 30% 0); transform: translate(2px, -1px); }
+  60%  { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
+  80%  { clip-path: inset(70% 0 5% 0);  transform: translate(1px, -2px); }
+  100% { clip-path: inset(5% 0 70% 0);  transform: translate(-1px, 1px); }
+}
+
+.glitch-text {
+  position: relative;
+}
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.glitch-text:hover::before {
+  opacity: 0.8;
+  color: oklch(0.65 0.25 25);
+  animation: glitch-1 0.3s steps(4) 3;
+}
+.glitch-text:hover::after {
+  opacity: 0.8;
+  color: oklch(0.65 0.20 250);
+  animation: glitch-2 0.3s steps(4) 3;
+}
+
+/* ────────────────────────────────────────────────────────
+   Horizontal rule with editorial diamond
+   ──────────────────────────────────────────────────────── */
+.editorial-hr {
+  position: relative;
+  border: none;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.15;
+}
+.editorial-hr::after {
+  content: "◆";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--background);
+  padding: 0 1rem;
+  font-size: 0.625rem;
+  opacity: 0.6;
+}
+
+/* ────────────────────────────────────────────────────────
+   Noise flicker — subtle opacity flicker for ambient effect
+   ──────────────────────────────────────────────────────── */
+@keyframes noise-flicker {
+  0%, 100% { opacity: 0.03; }
+  10%      { opacity: 0.06; }
+  30%      { opacity: 0.02; }
+  50%      { opacity: 0.05; }
+  70%      { opacity: 0.03; }
+  90%      { opacity: 0.04; }
+}
+.noise-flicker::before {
+  animation: noise-flicker 0.5s steps(6) infinite !important;
+}

@@ -21,6 +21,13 @@ export type Profile = {
   hasCv: boolean
 }
 
+export type ProjectImage = {
+  id: string
+  url: string
+  originalName: string
+  mimeType: string
+}
+
 export type Project = {
   id: string
   title: string
@@ -30,6 +37,7 @@ export type Project = {
   status: "completed" | "in-progress" | "planned"
   github?: string
   demo?: string
+  images?: ProjectImage[]
 }
 
 export type Experience = {
@@ -62,6 +70,8 @@ export type SectionSettings = {
   colorScheme: string
   animationStyle: string
   nameFontSize: number
+  siteTitle: string
+  faviconUrl: string | null
   sectionBackgrounds: Record<string, "default" | "inverted">
   elementVisibility: ElementVisibility
 }
@@ -111,6 +121,8 @@ const defaultData: PortfolioData = {
     colorScheme: "brutalist",
     animationStyle: "reveal",
     nameFontSize: 14,
+    siteTitle: "",
+    faviconUrl: null,
     sectionBackgrounds: {
       hero: "default",
       projects: "inverted",
@@ -147,9 +159,42 @@ export function usePortfolio() {
   return ctx
 }
 
+/**
+ * Maps individual effect keys to their parent group toggle.
+ * When the group toggle is off, all children are off regardless of their own value.
+ */
+const EFFECT_GROUPS: Record<string, string> = {
+  cursor_trail: "effects_cursor",
+  spotlight_cursor: "effects_cursor",
+  magnetic_buttons: "effects_cursor",
+  smooth_scroll: "effects_scroll",
+  scroll_progress: "effects_scroll",
+  section_wipe: "effects_scroll",
+  text_reveal: "effects_scroll",
+  staggered_text: "effects_scroll",
+  back_to_top: "effects_scroll",
+  particles: "effects_visual",
+  marquee_ticker: "effects_visual",
+  parallax_strip: "effects_visual",
+  glitch_text: "effects_visual",
+  typewriter_subtitle: "effects_visual",
+  scramble_headings: "effects_visual",
+  konami_code: "effects_easter_eggs",
+  page_transition: "effects_scroll",
+}
+
 /** Check if an element is visible (defaults to true when key is missing) */
 export function useVisible(key: string): boolean {
   const { data } = usePortfolio()
-  const val = data.settings.elementVisibility[key]
+  const vis = data.settings.elementVisibility
+
+  // If this key belongs to a group, check the group toggle first
+  const groupKey = EFFECT_GROUPS[key]
+  if (groupKey) {
+    const groupVal = vis[groupKey]
+    if (groupVal !== undefined && !groupVal) return false
+  }
+
+  const val = vis[key]
   return val === undefined ? true : Boolean(val)
 }

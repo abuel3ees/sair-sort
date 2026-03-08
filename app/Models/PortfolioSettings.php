@@ -16,6 +16,8 @@ class PortfolioSettings extends Model
         'section_backgrounds',
         'element_visibility',
         'name_font_size',
+        'site_title',
+        'favicon_path',
     ];
 
     protected function casts(): array
@@ -72,18 +74,11 @@ class PortfolioSettings extends Model
         'contact_socials' => true,
         'contact_location' => true,
         'contact_footer' => true,
-        // Global
-        'scroll_progress' => true,
-        'cursor_trail' => true,
-        'particles' => false,
-        'back_to_top' => true,
-        'smooth_scroll' => true,
-        'page_transition' => true,
-        'konami_code' => true,
-        'staggered_text' => true,
-        'magnetic_buttons' => true,
-        'section_wipe' => true,
-        'text_reveal' => true,
+        // Global effects (grouped)
+        'effects_cursor' => true,       // cursor_trail, spotlight_cursor, magnetic_buttons
+        'effects_scroll' => true,       // smooth_scroll, scroll_progress, section_wipe, text_reveal, staggered_text, back_to_top
+        'effects_visual' => true,       // particles, marquee_ticker, parallax_strip, glitch_text, typewriter_subtitle, scramble_headings
+        'effects_easter_eggs' => true,  // konami_code
     ];
 
     public static function current(): self
